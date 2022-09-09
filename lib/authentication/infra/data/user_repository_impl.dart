@@ -7,15 +7,17 @@ import 'package:teste_01/authentication/models/user.dart';
 import 'package:teste_01/common/repositories/repository.dart';
 
 class UserRepositoryImpl extends Repository {
+  final Dio _dio;
+
+  UserRepositoryImpl(this._dio);
+
   @override
   Future<List<User>?> getUsers() async {
     try {
-      var url =
-          'https://1d05c2b7-939b-4fb5-b1c4-6d7a627f2777.mock.pstmn.io/getUsers';
-      var response = await Dio().get(url);
+      var response = await _dio.get('/api/users?page=2');
       log(response.toString());
 
-      if (response.data == null) {
+      if (response.data == null || response.data == 'null') {
         return null;
       }
 
@@ -23,7 +25,7 @@ class UserRepositoryImpl extends Repository {
 
       return listUsers(map['data']);
     } on DioError catch (ex) {
-      if (ex.response?.statusCode == 400) {
+      if (ex.response?.statusCode == 404) {
         throw AuthException('Não foi possível encontrar usuarios.');
       }
       throw AuthException('Erro ao tentar se conectar.');
