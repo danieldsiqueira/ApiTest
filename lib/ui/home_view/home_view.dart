@@ -5,6 +5,7 @@ import 'package:teste_01/authentication/models/user.dart';
 import 'package:teste_01/common/connection_store.dart';
 import 'package:teste_01/common/widgets/no_internet_text.dart';
 import 'package:teste_01/ui/home_view/home_view_model.dart';
+import 'package:teste_01/ui/home_view/skeleton_loading/skeleton.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -34,9 +35,7 @@ class _HomeViewState extends State<HomeView> {
                 future: vm.listUsers,
                 builder: ((context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return const CircularProgressIndicator();
                   }
                   if (snapshot.hasError) {
                     return Center(
@@ -56,32 +55,9 @@ class _HomeViewState extends State<HomeView> {
                     );
                   }
 
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        snapshot.data!.isNotEmpty
-                            ? Expanded(
-                                child: ListView.builder(
-                                  itemCount: snapshot.data!.length,
-                                  itemBuilder: (context, index) {
-                                    return ListTile(
-                                      title:
-                                          Text(snapshot.data![index].firstName),
-                                    );
-                                  },
-                                ),
-                              )
-                            : Container(),
-                        Center(
-                          child: ElevatedButton(
-                              onPressed: () async {
-                                await vm.importUsers();
-                              },
-                              child: const Text('Sync Users')),
-                        )
-                      ],
-                    ),
+                  return CardItem(
+                    vm: vm,
+                    data: snapshot.data!,
                   );
                 }),
               )
@@ -89,6 +65,50 @@ class _HomeViewState extends State<HomeView> {
                 callBack: vm.importUsers,
               );
       }),
+    );
+  }
+}
+
+class CardItem extends StatelessWidget {
+  const CardItem({Key? key, required this.vm, required, required this.data})
+      : super(key: key);
+
+  final HomeViewModel vm;
+  final List<User> data;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        data.isNotEmpty
+            ? Expanded(
+                child: ListView.builder(
+                  itemCount: data.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: ListTile(
+                          tileColor: Colors.black12,
+                          title: Text(data[index].firstName),
+                          subtitle: Text(data[index].lastName),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              )
+            : Container(),
+        Center(
+          child: ElevatedButton(
+              onPressed: () async {
+                await vm.importUsers();
+              },
+              child: const Text('Sync Users')),
+        )
+      ],
     );
   }
 }
