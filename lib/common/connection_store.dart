@@ -7,6 +7,12 @@ part 'connection_store.g.dart';
 class ConnectionStore = _ConnectionStoreBase with _$ConnectionStore;
 
 abstract class _ConnectionStoreBase with Store {
+  @readonly
+  bool _isDeviceConnected = true;
+
+  @readonly
+  bool _isInternetWorking = true;
+
   @computed
   bool get haveInternet {
     checkDeviceConnectivity();
@@ -15,14 +21,8 @@ abstract class _ConnectionStoreBase with Store {
     return _isDeviceConnected && _isInternetWorking;
   }
 
-  @readonly
-  bool _isDeviceConnected = true;
-
-  @readonly
-  bool _isInternetWorking = true;
-
   @action
-  Future<void> checkDeviceConnectivity() async {
+  void checkDeviceConnectivity() {
     Connectivity().onConnectivityChanged.listen((result) {
       if (result == ConnectivityResult.none) {
         _isDeviceConnected = false;

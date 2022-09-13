@@ -53,14 +53,18 @@ mixin _$ConnectionStore on _ConnectionStoreBase, Store {
     });
   }
 
-  late final _$checkDeviceConnectivityAsyncAction = AsyncAction(
-      '_ConnectionStoreBase.checkDeviceConnectivity',
-      context: context);
+  late final _$_ConnectionStoreBaseActionController =
+      ActionController(name: '_ConnectionStoreBase', context: context);
 
   @override
-  Future<void> checkDeviceConnectivity() {
-    return _$checkDeviceConnectivityAsyncAction
-        .run(() => super.checkDeviceConnectivity());
+  void checkDeviceConnectivity() {
+    final _$actionInfo = _$_ConnectionStoreBaseActionController.startAction(
+        name: '_ConnectionStoreBase.checkDeviceConnectivity');
+    try {
+      return super.checkDeviceConnectivity();
+    } finally {
+      _$_ConnectionStoreBaseActionController.endAction(_$actionInfo);
+    }
   }
 
   @override

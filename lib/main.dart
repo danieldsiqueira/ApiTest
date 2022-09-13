@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:teste_01/authentication/ui/login_view/login_view.dart';
 import 'package:teste_01/common/common_scope.dart';
-import 'package:teste_01/ui/home_view/home_view.dart';
+import 'package:teste_01/common/routes.dart';
 
 void main() async {
   await dotenv.load(fileName: '.env');
@@ -17,10 +18,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      routes: getRoutes(),
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const HomeView(),
+      initialRoute: LoginView.route,
     );
   }
 }

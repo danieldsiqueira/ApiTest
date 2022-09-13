@@ -5,9 +5,10 @@ import 'package:teste_01/authentication/models/user.dart';
 import 'package:teste_01/common/connection_store.dart';
 import 'package:teste_01/common/widgets/no_internet_text.dart';
 import 'package:teste_01/ui/home_view/home_view_model.dart';
-import 'package:teste_01/ui/home_view/skeleton_loading/skeleton.dart';
 
 class HomeView extends StatefulWidget {
+  static const route = 'homeView';
+
   const HomeView({Key? key}) : super(key: key);
 
   @override
@@ -35,7 +36,7 @@ class _HomeViewState extends State<HomeView> {
                 future: vm.listUsers,
                 builder: ((context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
+                    return const Center(child: CircularProgressIndicator());
                   }
                   if (snapshot.hasError) {
                     return Center(
