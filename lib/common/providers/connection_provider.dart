@@ -2,14 +2,14 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
-import 'package:teste_01/common/connection_store.dart';
+import 'package:teste_01/common/services/connection_service.dart';
 
 class ConnectionProvider extends ChangeNotifier {
   ConnectionProvider() {
     checkInternet();
   }
 
-  ConnectionStore connectionStore = ConnectionStore();
+  ConnectionService connectionService = ConnectionService();
   bool _haveInternet = true;
   bool get haveInternet => _haveInternet;
 
@@ -21,7 +21,7 @@ class ConnectionProvider extends ChangeNotifier {
       const Duration(seconds: 3),
       (timer) {
         log('checking internet timer');
-        _haveInternet = connectionStore.haveInternet();
+        _haveInternet = connectionService.haveInternet();
         notifyListeners();
       },
     );

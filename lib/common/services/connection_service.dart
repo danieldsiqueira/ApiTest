@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:io';
 
-class ConnectionStore {
+class ConnectionService {
   bool _isDeviceConnected = true;
 
   bool _isInternetWorking = true;
@@ -40,7 +40,7 @@ class ConnectionStore {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ConnectionStore &&
+      other is ConnectionService &&
           runtimeType == other.runtimeType &&
           haveInternet == other.haveInternet;
 
