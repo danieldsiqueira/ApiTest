@@ -4,24 +4,16 @@ import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:teste_01/common/connection_store.dart';
 
-class ConnectionProvider extends StatefulWidget {
-  final Widget child;
-  const ConnectionProvider({Key? key, required this.child}) : super(key: key);
-
-  @override
-  State<ConnectionProvider> createState() => _ConnectionProviderState();
-}
-
-class _ConnectionProviderState extends State<ConnectionProvider> {
-  ConnectionStore connectionStore = ConnectionStore();
-  bool haveInternet = true;
-  late Timer _timer;
-
-  @override
-  void initState() {
-    super.initState();
+class ConnectionProvider extends ChangeNotifier {
+  ConnectionProvider() {
     checkInternet();
   }
+
+  ConnectionStore connectionStore = ConnectionStore();
+  bool _haveInternet = true;
+  bool get haveInternet => _haveInternet;
+
+  late Timer _timer;
 
   void checkInternet() {
     log('checking internet');
@@ -29,46 +21,27 @@ class _ConnectionProviderState extends State<ConnectionProvider> {
       const Duration(seconds: 3),
       (timer) {
         log('checking internet timer');
-
-        setState(() {
-          haveInternet = connectionStore.haveInternet();
-        });
+        _haveInternet = connectionStore.haveInternet();
+        notifyListeners();
       },
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return ConnectionProviderInherited(
-        connectionStore: haveInternet,
-        connectionProviderState: this,
-        child: widget.child);
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
 }
 
-class ConnectionProviderInherited extends InheritedWidget {
-  final bool connectionStore;
-  final _ConnectionProviderState connectionProviderState;
+class ConnectionProviderInherited
+    extends InheritedNotifier<ConnectionProvider> {
+  final ConnectionProvider connectionProvider;
 
   const ConnectionProviderInherited({
     Key? key,
     required Widget child,
-    required this.connectionStore,
-    required this.connectionProviderState,
-  }) : super(key: key, child: child);
+    required this.connectionProvider,
+  }) : super(key: key, child: child, notifier: connectionProvider);
 
-  static _ConnectionProviderState of(BuildContext context) => context
-      .dependOnInheritedWidgetOfExactType<ConnectionProviderInherited>()!
-      .connectionProviderState;
-
-  @override
-  bool updateShouldNotify(ConnectionProviderInherited oldWidget) {
-    return oldWidget.connectionStore != connectionStore;
-  }
+  static bool of(BuildContext context) =>
+      context
+          .dependOnInheritedWidgetOfExactType<ConnectionProviderInherited>()
+          ?.connectionProvider
+          .haveInternet ??
+      true;
 }

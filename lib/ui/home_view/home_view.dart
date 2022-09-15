@@ -37,56 +37,63 @@ class _HomeViewState extends State<HomeView> {
     return customers = repository.getCustomers();
   }
 
+  final connectionProvider = ConnectionProvider();
   @override
   Widget build(BuildContext context) {
-    final connection = ConnectionProviderInherited.of(context);
-
     return Scaffold(
         appBar: AppBar(title: const Text('Teste')),
-        body: connection.haveInternet
-            ? FutureBuilder<List<Customer>>(
-                future: customers,
-                builder: ((context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(snapshot.error.toString(),
-                              textAlign: TextAlign.center),
-                          ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  _getData();
-                                });
-                              },
-                              child: const Text('Try Again'))
-                        ],
-                      ),
-                    );
-                  }
+        body: ConnectionProviderInherited(
+          connectionProvider: connectionProvider,
+          child: Builder(builder: (context) {
+            final hasConnectionToInternet =
+                ConnectionProviderInherited.of(context);
 
-                  return CardItem(
-                    callback: () {
+            return hasConnectionToInternet
+                ? FutureBuilder<List<Customer>>(
+                    future: customers,
+                    builder: ((context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(snapshot.error.toString(),
+                                  textAlign: TextAlign.center),
+                              ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _getData();
+                                    });
+                                  },
+                                  child: const Text('Try Again'))
+                            ],
+                          ),
+                        );
+                      }
+
+                      return CardItem(
+                        callback: () {
+                          setState(() {
+                            _getData();
+                          });
+                        },
+                        data: snapshot.data!,
+                      );
+                    }),
+                  )
+                : NoInternetStatusText(
+                    callBack: () {
                       setState(() {
                         _getData();
                       });
                     },
-                    data: snapshot.data!,
                   );
-                }),
-              )
-            : NoInternetStatusText(
-                callBack: () {
-                  setState(() {
-                    _getData();
-                  });
-                },
-              ));
+          }),
+        ));
   }
 }
 
