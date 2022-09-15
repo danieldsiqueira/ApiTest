@@ -1,14 +1,17 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
 class CustomTextFormField extends StatefulWidget {
   final String labelText;
   final String? errorText;
+  final bool obscureText;
   final void Function(String text) onChanged;
-  bool isDirty = false;
 
-  CustomTextFormField({
+  const CustomTextFormField({
     required this.labelText,
     required this.onChanged,
+    this.obscureText = false,
     this.errorText,
     Key? key,
   }) : super(key: key);
@@ -18,19 +21,23 @@ class CustomTextFormField extends StatefulWidget {
 }
 
 class _CustomTextFormFieldState extends State<CustomTextFormField> {
+  bool isDirty = false;
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      obscureText: widget.obscureText,
       onChanged: (value) {
         widget.onChanged(value);
 
         setState(() {
-          widget.isDirty = true;
+          isDirty = true;
+          log(isDirty.toString());
         });
       },
       decoration: InputDecoration(
           labelText: widget.labelText,
-          errorText: widget.isDirty ? widget.errorText : null),
+          errorText: isDirty ? widget.errorText : null),
     );
   }
 }

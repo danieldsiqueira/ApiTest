@@ -1,5 +1,8 @@
 class Environment {
   final String baseUrl;
-
-  Environment({required this.baseUrl});
+  final String secret;
+  Environment({
+    required this.baseUrl,
+    required this.secret,
+  });
 }

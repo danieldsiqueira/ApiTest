@@ -1,27 +1,20 @@
+import 'dart:async';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:io';
-import 'package:mobx/mobx.dart';
 
-part 'connection_store.g.dart';
-
-class ConnectionStore = _ConnectionStoreBase with _$ConnectionStore;
-
-abstract class _ConnectionStoreBase with Store {
-  @readonly
+class ConnectionStore {
   bool _isDeviceConnected = true;
 
-  @readonly
   bool _isInternetWorking = true;
 
-  @computed
-  bool get haveInternet {
+  bool haveInternet() {
     checkDeviceConnectivity();
     checkInternetStatus();
 
     return _isDeviceConnected && _isInternetWorking;
   }
 
-  @action
   void checkDeviceConnectivity() {
     Connectivity().onConnectivityChanged.listen((result) {
       if (result == ConnectivityResult.none) {
@@ -43,4 +36,14 @@ abstract class _ConnectionStoreBase with Store {
       _isInternetWorking = false;
     }
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ConnectionStore &&
+          runtimeType == other.runtimeType &&
+          haveInternet == other.haveInternet;
+
+  @override
+  int get hashCode => haveInternet.hashCode;
 }

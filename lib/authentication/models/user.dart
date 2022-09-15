@@ -1,17 +1,19 @@
 import 'package:uuid/uuid.dart';
 
 class User {
-  final String id;
+  final String? id;
   final String email;
-  final String firstName;
-  final String lastName;
-  final String avatarImg;
+  final String password;
 
   User({
-    String? id,
+    id,
     required this.email,
-    required this.firstName,
-    required this.lastName,
-    required this.avatarImg,
+    required this.password,
   }) : id = id ?? const Uuid().v4();
+
+  Map<String, dynamic> toMap(User user) => {
+        'id': user.id,
+        'email': user.email,
+        'password': user.password,
+      };
 }

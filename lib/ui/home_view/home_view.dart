@@ -1,10 +1,10 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:get_it/get_it.dart';
-import 'package:teste_01/authentication/models/user.dart';
-import 'package:teste_01/common/connection_store.dart';
+import 'package:teste_01/authentication/infra/data/customer_repository.dart';
+import 'package:teste_01/authentication/models/customer.dart';
+import 'package:teste_01/common/providers/connection_provider.dart';
 import 'package:teste_01/common/widgets/no_internet_text.dart';
-import 'package:teste_01/ui/home_view/home_view_model.dart';
 
 class HomeView extends StatefulWidget {
   static const route = 'homeView';
@@ -16,24 +16,36 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  final repository = CustomerRepository();
+  late Future<List<Customer>> customers;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    log('calling did change dependencies');
+    _getData();
+  }
+
   @override
   void initState() {
     super.initState();
-    var vm = GetIt.I.get<HomeViewModel>();
-    vm.importUsers();
+    log('calling init state');
+    _getData();
+  }
+
+  Future<List<Customer>> _getData() async {
+    return customers = repository.getCustomers();
   }
 
   @override
   Widget build(BuildContext context) {
-    final vm = GetIt.I.get<HomeViewModel>();
-    final connection = GetIt.I.get<ConnectionStore>();
+    final connection = ConnectionProviderInherited.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Teste')),
-      body: Observer(builder: (context) {
-        return connection.haveInternet
-            ? FutureBuilder<List<User>>(
-                future: vm.listUsers,
+        appBar: AppBar(title: const Text('Teste')),
+        body: connection.haveInternet
+            ? FutureBuilder<List<Customer>>(
+                future: customers,
                 builder: ((context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -47,8 +59,10 @@ class _HomeViewState extends State<HomeView> {
                           Text(snapshot.error.toString(),
                               textAlign: TextAlign.center),
                           ElevatedButton(
-                              onPressed: () async {
-                                await vm.importUsers();
+                              onPressed: () {
+                                setState(() {
+                                  _getData();
+                                });
                               },
                               child: const Text('Try Again'))
                         ],
@@ -57,25 +71,34 @@ class _HomeViewState extends State<HomeView> {
                   }
 
                   return CardItem(
-                    vm: vm,
+                    callback: () {
+                      setState(() {
+                        _getData();
+                      });
+                    },
                     data: snapshot.data!,
                   );
                 }),
               )
             : NoInternetStatusText(
-                callBack: vm.importUsers,
-              );
-      }),
-    );
+                callBack: () {
+                  setState(() {
+                    _getData();
+                  });
+                },
+              ));
   }
 }
 
 class CardItem extends StatelessWidget {
-  const CardItem({Key? key, required this.vm, required, required this.data})
-      : super(key: key);
+  const CardItem({
+    Key? key,
+    required this.data,
+    required this.callback,
+  }) : super(key: key);
 
-  final HomeViewModel vm;
-  final List<User> data;
+  final List<Customer> data;
+  final VoidCallback callback;
 
   @override
   Widget build(BuildContext context) {
@@ -104,10 +127,7 @@ class CardItem extends StatelessWidget {
             : Container(),
         Center(
           child: ElevatedButton(
-              onPressed: () async {
-                await vm.importUsers();
-              },
-              child: const Text('Sync Users')),
+              onPressed: callback, child: const Text('Sync Users')),
         )
       ],
     );
