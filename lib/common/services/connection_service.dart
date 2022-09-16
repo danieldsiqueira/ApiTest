@@ -3,12 +3,19 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:io';
 
-class ConnectionService {
+import 'package:flutter/cupertino.dart';
+
+class ConnectionService extends ChangeNotifier {
+  ConnectionService() {
+    checkInternetStatus();
+    checkDeviceConnectivity();
+  }
+
   bool _isDeviceConnected = true;
-
   bool _isInternetWorking = true;
+  late StreamSubscription connectionStream;
 
-  bool haveInternet() {
+  bool get haveInternet {
     checkDeviceConnectivity();
     checkInternetStatus();
 
@@ -16,11 +23,13 @@ class ConnectionService {
   }
 
   void checkDeviceConnectivity() {
-    Connectivity().onConnectivityChanged.listen((result) {
+    connectionStream = Connectivity().onConnectivityChanged.listen((result) {
       if (result == ConnectivityResult.none) {
         _isDeviceConnected = false;
+        notifyListeners();
       } else {
         _isDeviceConnected = true;
+        notifyListeners();
       }
     });
   }
@@ -31,19 +40,17 @@ class ConnectionService {
           await InternetAddress.lookup('google.com');
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
         _isInternetWorking = true;
+        notifyListeners();
       }
     } on SocketException catch (_) {
       _isInternetWorking = false;
+      notifyListeners();
     }
   }
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ConnectionService &&
-          runtimeType == other.runtimeType &&
-          haveInternet == other.haveInternet;
-
-  @override
-  int get hashCode => haveInternet.hashCode;
+  void dispose() {
+    connectionStream.cancel();
+    super.dispose();
+  }
 }

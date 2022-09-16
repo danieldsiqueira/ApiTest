@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:teste_01/authentication/errors/auth_exception.dart';
 
 import 'package:teste_01/common/extensions/iterable_extension.dart';
 import 'package:teste_01/authentication/infra/data/customer_repository.dart';
 import 'package:teste_01/authentication/models/customer.dart';
-import 'package:teste_01/common/providers/connection_provider.dart';
 import 'package:teste_01/common/providers/import_customers_provider.dart';
+import 'package:teste_01/common/services/connection_service.dart';
 import 'package:teste_01/common/widgets/no_internet_text.dart';
 
 class HomeView extends StatefulWidget {
@@ -19,56 +20,62 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final repository = CustomerRepository();
-  final connectionProvider = ConnectionProvider();
   late List<Customer> customers;
   Exception? exception;
   bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
-    final hasConnectionToInternet = ConnectionProviderInherited.of(context);
-    final importCustomerProvider = ImportCustomersProvider.of(context);
+    final hasConnectionToInternet =
+        Provider.of<ConnectionService>(context).haveInternet;
 
     return Scaffold(
-        appBar: AppBar(title: const Text('Teste')),
-        body: hasConnectionToInternet
-            ? Column(
+      appBar: AppBar(title: const Text('Teste')),
+      body: ChangeNotifierProvider(
+        create: (context) => ImportCustomers(
+          CustomerRepository(),
+        ),
+        child: Consumer<ImportCustomers>(
+          builder: (context, importCustomerProvider, child) {
+            if (child != null) child;
+
+            if (hasConnectionToInternet) {
+              return Column(
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  isLoading
-                      ? const Center(child: CircularProgressIndicator())
+                  isLoading || importCustomerProvider.customers.isEmpty
+                      ? const Center(
+                          child: CircularProgressIndicator(),
+                        )
                       : exception == null
-                          ? CardItem(
+                          ? ListOfItems(
                               data: importCustomerProvider.customers,
                               callback: () async {
                                 await fetchCustomers(context);
                               })
-                          : Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(exception.toString(),
-                                      textAlign: TextAlign.center),
-                                  ElevatedButton(
-                                      onPressed: () async {
-                                        await fetchCustomers(context);
-                                      },
-                                      child: const Text('Try Again'))
-                                ],
-                              ),
-                            )
+                          : ErrorWidget(
+                              exception: exception!,
+                              callBack: () async {
+                                await fetchCustomers(context);
+                              })
                 ].setAllExpanded(),
-              )
-            : NoInternetStatusText(
-                callBack: () async {
-                  await fetchCustomers(context);
-                },
-              ));
+              );
+            }
+
+            return NoInternetStatusText(
+              callBack: () async {
+                await fetchCustomers(context);
+              },
+            );
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> fetchCustomers(BuildContext context) async {
-    final importCustomerProvider = ImportCustomersProvider.of(context);
+    final importCustomerProvider =
+        Provider.of<ImportCustomers>(context, listen: false);
     setState(() {
       isLoading = true;
     });
@@ -87,8 +94,31 @@ class _HomeViewState extends State<HomeView> {
   }
 }
 
-class CardItem extends StatelessWidget {
-  const CardItem({
+class ErrorWidget extends StatelessWidget {
+  final Exception exception;
+  final VoidCallback callBack;
+  const ErrorWidget({Key? key, required this.exception, required this.callBack})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(exception.toString(), textAlign: TextAlign.center),
+            ElevatedButton(
+              onPressed: callBack,
+              child: const Text('Try Again'),
+            )
+          ]),
+    );
+  }
+}
+
+class ListOfItems extends StatelessWidget {
+  const ListOfItems({
     Key? key,
     required this.data,
     required this.callback,
