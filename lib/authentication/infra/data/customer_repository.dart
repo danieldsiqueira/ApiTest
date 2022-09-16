@@ -9,8 +9,8 @@ class CustomerRepository {
   Future<List<Customer>> getCustomers() async {
     try {
       const uri = 'https://reqres.in/api/users?page=2';
-      // https://reqres.in/api/users?page=2
-      // https://reqres.in/api/users/23
+      // https://reqres.in/api/users?page=2 lista os usuarios
+      // https://reqres.in/api/users/23 error 404
 
       var response = await http.get(Uri.parse(uri));
       log(response.body.toString());
