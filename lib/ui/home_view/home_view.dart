@@ -36,9 +36,7 @@ class _HomeViewState extends State<HomeView> {
           CustomerRepository(),
         ),
         child: Consumer<ImportCustomers>(
-          builder: (context, importCustomerProvider, child) {
-            if (child != null) child;
-
+          builder: (context, importCustomerProvider, _) {
             if (hasConnectionToInternet) {
               return Column(
                 mainAxisSize: MainAxisSize.max,
@@ -87,10 +85,11 @@ class _HomeViewState extends State<HomeView> {
       setState(() {
         exception = ex;
       });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
-    setState(() {
-      isLoading = false;
-    });
   }
 }
 
