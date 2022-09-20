@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
-import 'package:teste_01/authentication/errors/auth_exception.dart';
 
-import 'package:teste_01/common/extensions/iterable_extension.dart';
-import 'package:teste_01/authentication/infra/data/customer_repository.dart';
 import 'package:teste_01/authentication/models/customer.dart';
-import 'package:teste_01/common/providers/import_customers_provider.dart';
-import 'package:teste_01/common/services/connection_service.dart';
+import 'package:teste_01/common/controllers/connection_controller.dart';
 import 'package:teste_01/common/widgets/no_internet_text.dart';
+import 'package:teste_01/ui/home_view/home_view_controller.dart';
 
 class HomeView extends StatefulWidget {
   static const route = 'homeView';
@@ -19,77 +18,47 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  final repository = CustomerRepository();
-  late List<Customer> customers;
-  Exception? exception;
-  bool isLoading = false;
-
   @override
   Widget build(BuildContext context) {
-    final hasConnectionToInternet =
-        Provider.of<ConnectionService>(context).haveInternet;
+    final connectionController = GetIt.I.get<ConnectionController>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Teste')),
-      body: ChangeNotifierProvider(
-        create: (context) => ImportCustomers(
-          CustomerRepository(),
-        ),
-        child: Consumer<ImportCustomers>(
-          builder: (context, importCustomerProvider, _) {
-            if (hasConnectionToInternet) {
-              return Column(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  isLoading || importCustomerProvider.customers.isEmpty
-                      ? const Center(
-                          child: CircularProgressIndicator(),
-                        )
-                      : exception == null
-                          ? ListOfItems(
-                              data: importCustomerProvider.customers,
-                              callback: () async {
-                                await fetchCustomers(context);
-                              })
-                          : ErrorWidget(
-                              exception: exception!,
-                              callBack: () async {
-                                await fetchCustomers(context);
-                              })
-                ].setAllExpanded(),
-              );
-            }
+        appBar: AppBar(title: const Text('Teste')),
+        body: Provider(
+            create: (context) => HomeViewController(GetIt.I.get()),
+            builder: (context, vm) {
+              final vm = Provider.of<HomeViewController>(context);
 
-            return NoInternetStatusText(
-              callBack: () async {
-                await fetchCustomers(context);
-              },
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Future<void> fetchCustomers(BuildContext context) async {
-    final importCustomerProvider =
-        Provider.of<ImportCustomers>(context, listen: false);
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      await importCustomerProvider.getCustomers();
-      exception = null;
-    } on AuthException catch (ex) {
-      setState(() {
-        exception = ex;
-      });
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
+              return Observer(builder: (context) {
+                return connectionController.haveInternet
+                    ? FutureBuilder<List<Customer>>(
+                        future: vm.customers,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                          if (snapshot.hasError) {
+                            vm.getCustomers;
+                            return ErrorWidget(
+                                exception: snapshot.error as Exception,
+                                callBack: () {
+                                  vm.getCustomers();
+                                });
+                          }
+                          return ListOfItems(
+                              data: snapshot.data!,
+                              callback: () {
+                                vm.getCustomers();
+                              });
+                        })
+                    : NoInternetStatusText(
+                        callBack: () async {},
+                      );
+              });
+            }));
   }
 }
 

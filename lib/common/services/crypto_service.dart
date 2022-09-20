@@ -1,17 +1,20 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:crypto/crypto.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:get_it/get_it.dart';
 import 'package:teste_01/common/model/environment.dart';
 
 class CryptoService {
   String hashPassword(String password) {
-    final enviroment = Environment(
-        baseUrl: dotenv.env['baseUrl']!, secret: dotenv.env['secret']!);
+    final enviroment = GetIt.I.get<Environment>();
 
     final passwordBytes = utf8.encode(password);
     final secretBytes = utf8.encode(enviroment.secret);
 
-    return Hmac(sha256, passwordBytes).convert(secretBytes).toString();
+    final passwordHashed =
+        Hmac(sha256, passwordBytes).convert(secretBytes).toString();
+    log(passwordHashed);
+    return passwordHashed;
   }
 }
