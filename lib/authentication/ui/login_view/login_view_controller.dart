@@ -12,21 +12,39 @@ abstract class _LoginViewControllerBase with Store {
   String? email = '';
 
   @observable
-  String? senha = '';
+  String? password = '';
+
+  @observable
+  String? confirmPassword = '';
+
+  @observable
+  bool isSignUp = false;
 
   @action
-  String? errorEmailMessage() {
+  void toggleSignUp() {
+    isSignUp = !isSignUp;
+  }
+
+  @computed
+  String? get errorEmailMessage {
     return Validators().email(email) ?? Validators().isEmpty(email);
   }
 
-  @action
-  String? errorPasswordMessage() {
-    return Validators().isEmpty(senha) ?? Validators().minCharacters(senha);
+  @computed
+  String? get errorConfirmPassword {
+    return Validators().passwordMatch(password, confirmPassword);
+  }
+
+  @computed
+  String? get errorPasswordMessage {
+    return Validators().isEmpty(password) ??
+        Validators().minCharacters(password);
   }
 
   void loginUser() {
     final loginCommandHandler = GetIt.I.get<LoginUserCommandHandler>();
-    final command = LoginUserCommand(email: email ?? '', password: senha ?? '');
+    final command =
+        LoginUserCommand(email: email ?? '', password: password ?? '');
     loginCommandHandler.handler(command);
   }
 

@@ -21,6 +21,14 @@ class Validators {
     return null;
   }
 
+  String? passwordMatch(String? password, String? confirmPassword,
+      [message = 'The password must be equal.']) {
+    if (password == confirmPassword) {
+      return null;
+    }
+    return message;
+  }
+
   String? minCharacters(String? value,
       [message = 'Please enter at least 6 characters.']) {
     if (isEmpty(value) != null) {

@@ -9,6 +9,28 @@ part of 'login_view_controller.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$LoginViewController on _LoginViewControllerBase, Store {
+  Computed<String?>? _$errorEmailMessageComputed;
+
+  @override
+  String? get errorEmailMessage => (_$errorEmailMessageComputed ??=
+          Computed<String?>(() => super.errorEmailMessage,
+              name: '_LoginViewControllerBase.errorEmailMessage'))
+      .value;
+  Computed<String?>? _$errorConfirmPasswordComputed;
+
+  @override
+  String? get errorConfirmPassword => (_$errorConfirmPasswordComputed ??=
+          Computed<String?>(() => super.errorConfirmPassword,
+              name: '_LoginViewControllerBase.errorConfirmPassword'))
+      .value;
+  Computed<String?>? _$errorPasswordMessageComputed;
+
+  @override
+  String? get errorPasswordMessage => (_$errorPasswordMessageComputed ??=
+          Computed<String?>(() => super.errorPasswordMessage,
+              name: '_LoginViewControllerBase.errorPasswordMessage'))
+      .value;
+
   late final _$emailAtom =
       Atom(name: '_LoginViewControllerBase.email', context: context);
 
@@ -25,19 +47,51 @@ mixin _$LoginViewController on _LoginViewControllerBase, Store {
     });
   }
 
-  late final _$senhaAtom =
-      Atom(name: '_LoginViewControllerBase.senha', context: context);
+  late final _$passwordAtom =
+      Atom(name: '_LoginViewControllerBase.password', context: context);
 
   @override
-  String? get senha {
-    _$senhaAtom.reportRead();
-    return super.senha;
+  String? get password {
+    _$passwordAtom.reportRead();
+    return super.password;
   }
 
   @override
-  set senha(String? value) {
-    _$senhaAtom.reportWrite(value, super.senha, () {
-      super.senha = value;
+  set password(String? value) {
+    _$passwordAtom.reportWrite(value, super.password, () {
+      super.password = value;
+    });
+  }
+
+  late final _$confirmPasswordAtom =
+      Atom(name: '_LoginViewControllerBase.confirmPassword', context: context);
+
+  @override
+  String? get confirmPassword {
+    _$confirmPasswordAtom.reportRead();
+    return super.confirmPassword;
+  }
+
+  @override
+  set confirmPassword(String? value) {
+    _$confirmPasswordAtom.reportWrite(value, super.confirmPassword, () {
+      super.confirmPassword = value;
+    });
+  }
+
+  late final _$isSignUpAtom =
+      Atom(name: '_LoginViewControllerBase.isSignUp', context: context);
+
+  @override
+  bool get isSignUp {
+    _$isSignUpAtom.reportRead();
+    return super.isSignUp;
+  }
+
+  @override
+  set isSignUp(bool value) {
+    _$isSignUpAtom.reportWrite(value, super.isSignUp, () {
+      super.isSignUp = value;
     });
   }
 
@@ -45,22 +99,11 @@ mixin _$LoginViewController on _LoginViewControllerBase, Store {
       ActionController(name: '_LoginViewControllerBase', context: context);
 
   @override
-  String? errorEmailMessage() {
+  void toggleSignUp() {
     final _$actionInfo = _$_LoginViewControllerBaseActionController.startAction(
-        name: '_LoginViewControllerBase.errorEmailMessage');
+        name: '_LoginViewControllerBase.toggleSignUp');
     try {
-      return super.errorEmailMessage();
-    } finally {
-      _$_LoginViewControllerBaseActionController.endAction(_$actionInfo);
-    }
-  }
-
-  @override
-  String? errorPasswordMessage() {
-    final _$actionInfo = _$_LoginViewControllerBaseActionController.startAction(
-        name: '_LoginViewControllerBase.errorPasswordMessage');
-    try {
-      return super.errorPasswordMessage();
+      return super.toggleSignUp();
     } finally {
       _$_LoginViewControllerBaseActionController.endAction(_$actionInfo);
     }
@@ -70,7 +113,12 @@ mixin _$LoginViewController on _LoginViewControllerBase, Store {
   String toString() {
     return '''
 email: ${email},
-senha: ${senha}
+password: ${password},
+confirmPassword: ${confirmPassword},
+isSignUp: ${isSignUp},
+errorEmailMessage: ${errorEmailMessage},
+errorConfirmPassword: ${errorConfirmPassword},
+errorPasswordMessage: ${errorPasswordMessage}
     ''';
   }
 }
