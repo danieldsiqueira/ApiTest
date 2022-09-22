@@ -1,8 +1,7 @@
 import 'package:get_it/get_it.dart';
+import 'package:teste_01/authentication/commands/login_user_command.dart';
 import 'package:teste_01/authentication/errors/auth_exception.dart';
 import 'package:teste_01/authentication/infra/data/user_repository_local.dart';
-import 'package:teste_01/authentication/models/user.dart';
-import 'package:teste_01/common/services/crypto_service.dart';
 
 class SignUserCommand {
   final String email;
@@ -19,22 +18,25 @@ class SignUserCommandHandler {
   SignUserCommandHandler(this.userRepositoryLocal);
 
   void handler(SignUserCommand command) {
+    if (command.email.isEmpty || command.password.isEmpty) {
+      throw AuthException('Please, enter a email and password to Sign In.');
+    }
+
     final userExist = userRepositoryLocal.userExists(command.email);
 
     if (userExist) {
       throw AuthException('This user already exists, try login instead.');
     }
 
-    final user = User(
+    userRepositoryLocal.saveUser(
       email: command.email,
-      password: _hashPassword(command.password),
+      password: command.password,
     );
 
-    userRepositoryLocal.saveUser(user);
-  }
+    final loginCommand =
+        LoginUserCommand(email: command.email, password: command.password);
 
-  String _hashPassword(String password) {
-    final cryptoService = GetIt.I.get<CryptoService>();
-    return cryptoService.hashPassword(password);
+    final loginCommandHandler = GetIt.I.get<LoginUserCommandHandler>();
+    loginCommandHandler.handler(loginCommand);
   }
 }

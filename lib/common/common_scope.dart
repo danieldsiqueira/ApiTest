@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teste_01/authentication/commands/login_user_command.dart';
 import 'package:teste_01/authentication/commands/sign_user_command.dart';
+import 'package:teste_01/authentication/infra/data/customer_repository.dart';
 import 'package:teste_01/authentication/infra/data/user_repository_local.dart';
 import 'package:teste_01/authentication/ui/login_view/login_view_controller.dart';
 import 'package:teste_01/common/model/environment.dart';
@@ -19,6 +20,7 @@ Future<void> initCommonScope() async {
     return await SharedPreferences.getInstance();
   });
   c.registerLazySingleton(() => CryptoService());
+  c.registerLazySingleton(() => CustomerRepository());
 
   c.registerLazySingleton(() => ConnectionController());
   c.registerFactory(() => LoginViewController());

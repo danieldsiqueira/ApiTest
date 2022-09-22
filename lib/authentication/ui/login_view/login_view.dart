@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
+import 'package:teste_01/authentication/errors/auth_exception.dart';
 import 'package:teste_01/authentication/ui/login_view/login_view_controller.dart';
 import 'package:teste_01/common/widgets/custom_text_form_field.dart';
+import 'package:teste_01/ui/home_view/home_view.dart';
 
 class LoginView extends StatefulWidget {
   static const route = 'loginView';
@@ -57,42 +59,20 @@ class _LoginViewState extends State<LoginView>
                           labelText: 'Senha',
                           errorText: vm.errorPasswordMessage,
                         ),
-                        AnimatedCrossFade(
-                          duration: const Duration(milliseconds: 300),
-                          firstCurve: Curves.easeInOutExpo,
-                          crossFadeState: vm.isSignUp
-                              ? CrossFadeState.showFirst
-                              : CrossFadeState.showSecond,
-                          secondChild: Container(),
-                          firstChild: Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: CustomTextFormField(
-                              onChanged: (value) => vm.confirmPassword = value,
-                              obscureText: true,
-                              labelText: 'Confirmar Senha',
-                              errorText: vm.errorConfirmPassword,
-                            ),
-                          ),
-                        ),
+                        const _AnimatedCrossFadeConfirmPassword(),
                         const SizedBox(
                           height: 16,
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                vm.toggleSignUp();
-                              },
-                              child: const Text('SignUp'),
-                            ),
-                            const SizedBox(
+                          children: const [
+                            _AnimatedCrossFadeElevatedButton(
+                                isSignUpButton: true),
+                            SizedBox(
                               width: 16,
                             ),
-                            ElevatedButton(
-                              onPressed: () {},
-                              child: const Text('Login'),
-                            ),
+                            _AnimatedCrossFadeElevatedButton(
+                                isSignUpButton: false),
                           ],
                         )
                       ]));
@@ -101,5 +81,111 @@ class _LoginViewState extends State<LoginView>
             ));
           });
         });
+  }
+}
+
+class _AnimatedCrossFadeConfirmPassword extends StatelessWidget {
+  const _AnimatedCrossFadeConfirmPassword({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = Provider.of<LoginViewController>(context);
+
+    return Observer(builder: (context) {
+      return AnimatedCrossFade(
+        duration: const Duration(milliseconds: 300),
+        firstCurve: Curves.easeInOutExpo,
+        crossFadeState:
+            vm.isSignUp ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+        secondChild: Container(),
+        firstChild: Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: CustomTextFormField(
+            onChanged: (value) => vm.confirmPassword = value,
+            obscureText: true,
+            labelText: 'Confirmar Senha',
+            errorText: vm.errorConfirmPassword,
+          ),
+        ),
+      );
+    });
+  }
+}
+
+class _AnimatedCrossFadeElevatedButton extends StatelessWidget {
+  final bool isSignUpButton;
+
+  const _AnimatedCrossFadeElevatedButton({
+    required this.isSignUpButton,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = Provider.of<LoginViewController>(context, listen: false);
+
+    return Observer(builder: (context) {
+      return AnimatedCrossFade(
+        duration: const Duration(milliseconds: 300),
+        firstCurve: Curves.easeInOutExpo,
+        crossFadeState:
+            vm.isSignUp ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+        firstChild: isSignUpButton
+            ? OutlinedButton(
+                onPressed: () {
+                  vm.toggleSignUp();
+                },
+                child: const SizedBox(
+                    width: 80,
+                    child: Center(
+                      child: Text('Login'),
+                    )),
+              )
+            : ElevatedButton(
+                onPressed: () => _tryAuthFunction(context, signUp: true),
+                child: const SizedBox(
+                    width: 80,
+                    child: Center(
+                      child: Text('Register'),
+                    )),
+              ),
+        secondChild: isSignUpButton
+            ? OutlinedButton(
+                onPressed: () {
+                  vm.toggleSignUp();
+                },
+                child: const SizedBox(
+                    width: 80,
+                    child: Center(
+                      child: Text('SignUp'),
+                    )),
+              )
+            : ElevatedButton(
+                onPressed: () => _tryAuthFunction(context, signUp: false),
+                child: const SizedBox(
+                    width: 80,
+                    child: Center(
+                      child: Text('Login'),
+                    )),
+              ),
+      );
+    });
+  }
+
+  void _tryAuthFunction(BuildContext context, {required bool signUp}) {
+    final vm = Provider.of<LoginViewController>(context, listen: false);
+    try {
+      signUp ? vm.signUser() : vm.loginUser();
+      Navigator.of(context).pushReplacementNamed(HomeView.route);
+    } on AuthException catch (ex) {
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                title: const Text('Error'),
+                content: Text(ex.toString()),
+              ));
+    }
   }
 }

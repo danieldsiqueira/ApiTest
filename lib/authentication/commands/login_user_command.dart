@@ -1,9 +1,7 @@
-import 'package:get_it/get_it.dart';
 import 'package:teste_01/authentication/errors/auth_exception.dart';
 import 'package:teste_01/authentication/infra/data/user_repository_local.dart';
-import 'package:teste_01/authentication/init_user_scope.dart';
-import 'package:teste_01/common/repositories/repository.dart';
-import 'package:teste_01/common/services/crypto_service.dart';
+import 'package:teste_01/authentication/login_scope.dart';
+import 'package:teste_01/common/common_scope.dart';
 
 class LoginUserCommand {
   final String email;
@@ -21,15 +19,15 @@ class LoginUserCommandHandler {
   LoginUserCommandHandler(this._repository);
 
   void handler(LoginUserCommand command) {
-    final cryptoService = GetIt.I.get<CryptoService>();
-    final hashPassword = cryptoService.hashPassword(command.password);
-
-    final user = _repository.getUser(command.email, hashPassword);
+    if (command.email.isEmpty || command.password.isEmpty) {
+      throw AuthException('Pleas enter a email and password valid.');
+    }
+    final user = _repository.getUser(command.email, command.password);
 
     if (user == null) {
       throw AuthException('Usuário não encontrado');
     }
 
-    initLoginUserScope(user);
+    LoginScope.initLoginUserScope(user);
   }
 }

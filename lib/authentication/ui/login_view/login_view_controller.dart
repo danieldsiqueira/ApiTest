@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:get_it/get_it.dart';
 import 'package:mobx/mobx.dart';
 import 'package:teste_01/authentication/commands/login_user_command.dart';
+import 'package:teste_01/authentication/commands/sign_user_command.dart';
 import 'package:teste_01/common/validators.dart';
 
 part 'login_view_controller.g.dart';
@@ -48,5 +51,11 @@ abstract class _LoginViewControllerBase with Store {
     loginCommandHandler.handler(command);
   }
 
-  void signUser() {}
+  void signUser() {
+    log('SignUserFunction has been pressed');
+    final signUpCommandHandler = GetIt.I.get<SignUserCommandHandler>();
+    final command =
+        SignUserCommand(email: email ?? '', password: password ?? '');
+    signUpCommandHandler.handler(command);
+  }
 }

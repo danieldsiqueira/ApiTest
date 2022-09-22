@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
 
 import 'package:teste_01/authentication/models/customer.dart';
+import 'package:teste_01/authentication/models/logged_user.dart';
 import 'package:teste_01/common/controllers/connection_controller.dart';
 import 'package:teste_01/common/widgets/no_internet_text.dart';
 import 'package:teste_01/ui/home_view/home_view_controller.dart';
@@ -21,44 +22,45 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     final connectionController = GetIt.I.get<ConnectionController>();
+    final sessionStore = GetIt.I.get<LoggedUser>();
 
-    return Scaffold(
-        appBar: AppBar(title: const Text('Teste')),
-        body: Provider(
-            create: (context) => HomeViewController(GetIt.I.get()),
-            builder: (context, vm) {
-              final vm = Provider.of<HomeViewController>(context);
-
-              return Observer(builder: (context) {
-                return connectionController.haveInternet
-                    ? FutureBuilder<List<Customer>>(
-                        future: vm.customers,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          }
-                          if (snapshot.hasError) {
-                            vm.getCustomers;
-                            return ErrorWidget(
-                                exception: snapshot.error as Exception,
-                                callBack: () {
+    return Provider(
+        create: (context) => HomeViewController(GetIt.I.get()),
+        builder: (context, snapshot) {
+          return Consumer<HomeViewController>(builder: (context, vm, _) {
+            return Scaffold(
+                appBar: AppBar(title: Text(sessionStore.user.email)),
+                body: Observer(builder: (context) {
+                  return connectionController.haveInternet
+                      ? FutureBuilder<List<Customer>>(
+                          future: vm.customers,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            if (snapshot.hasError) {
+                              vm.getCustomers;
+                              return ErrorWidget(
+                                  exception: snapshot.error as Exception,
+                                  callBack: () {
+                                    vm.getCustomers();
+                                  });
+                            }
+                            return ListOfItems(
+                                data: snapshot.data!,
+                                callback: () {
                                   vm.getCustomers();
                                 });
-                          }
-                          return ListOfItems(
-                              data: snapshot.data!,
-                              callback: () {
-                                vm.getCustomers();
-                              });
-                        })
-                    : NoInternetStatusText(
-                        callBack: () async {},
-                      );
-              });
-            }));
+                          })
+                      : NoInternetStatusText(
+                          callBack: () async {},
+                        );
+                }));
+          });
+        });
   }
 }
 
